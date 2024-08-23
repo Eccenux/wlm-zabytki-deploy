@@ -33,15 +33,15 @@ class DeployHelper {
 
 	public function deploy($deployType) {
 		$deployPath = $this->getDeployPath($deployType);
-		if (!is_dir($this->repoDir "/.git")) {
+
+		// Step 1: Clone or pull the repository
+		$this->cloneOrPullRepo();
+		if (!is_dir("{$this->repoDir}/.git")) {
 			return "Failed to get repo files?";
 		}
 		if (!is_dir("{$this->repoDir}/app-prod/assets")) {
 			return "The repo doesn't contain assets!";
 		}
-
-		// Step 1: Clone or pull the repository
-		$this->cloneOrPullRepo();
 
 		// Step 2: Create the deploy directory if it doesn't exist
 		if (!is_dir($deployPath)) {
@@ -53,7 +53,7 @@ class DeployHelper {
 
 		// Step 4: Copy files from the repo's app-prod directory to the deploy path
 		$this->execCommand("cp -r {$this->repoDir}/app-prod/* $deployPath/");
-		if (!is_dir($deployPath "/assets")) {
+		if (!is_dir("$deployPath/assets")) {
 			return "Failed to copy files?";
 		}
 		
@@ -71,7 +71,7 @@ class DeployHelper {
 	}
 
 	private function getDeployPath($deployType) {
-		if ($deployType === 'testing') {
+		if ($deployType === 'test') {
 			return $this->config['deploy_path_testing'];
 		} elseif ($deployType === 'main') {
 			return $this->config['deploy_path_main'];
