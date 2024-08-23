@@ -9,16 +9,18 @@
 */
 class DeployHelper {
 	private $config;
-	private $repoDir = '~/repo';  // Working directory for the cloned repository
+	private $repoDir = '/data/project/zabytki/repo';  // Working directory for the cloned repository
 
 	public function __construct($configPath = '.config.php') {
 		$this->config = require $configPath;
 	}
 
-	private function execCommand($command) {
-		echo "Executing: $command\n";
+	private function execCommand($command, $info="") {
+		echo empty($info) ? "Executing: $command" : $info;
+		echo "\n";
 		$output = shell_exec($command);
 		echo $output;
+		echo "\n";
 		return $output;
 	}
 
@@ -44,21 +46,29 @@ class DeployHelper {
 		}
 
 		// Step 2: Create the deploy directory if it doesn't exist
-		if (!is_dir($deployPath)) {
-			$this->execCommand("mkdir -p $deployPath");
-		}
+		$this->createDeployDirectory($deployPath);
 
 		// Step 3: Remove the assets subdirectory in the deploy path
-		$this->execCommand("rm -rf $deployPath/assets");
+		$this->execCommand("rm -rf $deployPath/assets", "Cleanup deploy dir.");
 
 		// Step 4: Copy files from the repo's app-prod directory to the deploy path
-		$this->execCommand("cp -r {$this->repoDir}/app-prod/* $deployPath/");
+		$this->execCommand("cp -r {$this->repoDir}/app-prod/* $deployPath/", "Copy new files.");
 		if (!is_dir("$deployPath/assets")) {
 			return "Failed to copy files?";
 		}
 		
 		return true;
 	}
+
+	private function createDeployDirectory($deployPath) {
+		if (!is_dir($deployPath)) {
+			if (mkdir($deployPath, 0777, true)) {
+				echo "Successfully created deploy directory: $deployPath\n";
+			} else {
+				throw new Exception("Failed to create deploy directory: $deployPath");
+			}
+		}
+	}	
 
 	private function cloneOrPullRepo() {
 		if (!is_dir($this->repoDir)) {
